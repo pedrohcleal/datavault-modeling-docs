@@ -47,6 +47,16 @@ Este comando executa um modelo específico do DBT, materializando os dados no ba
 ### 7. Validar no banco de dados
 Após a execução, é recomendado verificar no DBeaver se a tabela foi criada conforme esperado.
 
+### 6. Executar um modelo específico
+```bash
+dbt run --full-refresh --select tag:dev_fiduciarios_oliveiratrust
+```
+
+```bash
+dbt test --select tag:dev_fiduciarios_oliveiratrust
+```
+
 ## Considerações finais
 O processo de execução dos modelos no DBT pode ser considerado uma operação "em produção", pois impacta diretamente os dados do banco. Portanto, é importante validar a sintaxe e os modelos antes de executar comandos que modifiquem os dados.
+
 

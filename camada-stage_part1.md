@@ -157,4 +157,43 @@ FROM raw_data
 
 Isso ajuda a garantir que os valores sejam tratados corretamente, mesmo se forem `NULL`.
 
-Quer um exemplo mais prático no seu contexto?
+## Quais Colunas Devem Fazer Parte do Hashdiff?
+Apenas os **atributos de negócio** devem ser incluídos no hashdiff. **Colunas de auditoria e controle não devem ser utilizadas.**
+
+### ✅ **Incluídas no Hashdiff**
+- Atributos descritivos e relevantes para a história do objeto modelado.
+- Colunas que impactam a representação do dado na camada de negócio.
+
+### ❌ **Excluídas do Hashdiff**
+- **`dt_ref`**: Data de referência do dado. Ela pode estar presente na tabela, mas não deve ser usada no hashdiff.
+- **`file_key`** e **`etag`**: Usadas apenas na Raw Layer para controle e auditoria.
+- **`last_modified` (`load_datetime`)**: Timestamp da última modificação na fonte. Pode ser utilizada para controle, mas **não deve fazer parte do hashdiff**.
+
+## Como Construir o Hashdiff no dbt?
+No **dbt**, utilizamos a função `dbt_utils.generate_surrogate_key()` para gerar o hashdiff.
+
+### 📌 **Exemplo de Implementação**
+```sql
+SELECT
+    dt_ref,  -- Fica antes do hashdiff, mas não participa dele
+    dbt_utils.generate_surrogate_key(ARRAY[
+        tipo_instrumento_hk,
+        tipo_instrumento_bk,
+        emissor_hk,
+        emissor_bk,
+        apelido,
+        ranking
+    ]) AS hashdiff
+FROM prep_raw.dados_fonte
+```
+
+### 🔹 **Explicação do Código:**
+- A coluna **`dt_ref`** é mantida no conjunto de dados, mas **fora do hashdiff**.
+- Os atributos descritivos são passados como array para `dbt_utils.generate_surrogate_key()`, que gera um **hash SHA256**.
+- O hashdiff é calculado com base nos atributos do negócio para identificar mudanças no satélite.
+
+## 4. Benefícios do Uso do Hashdiff
+✅ **Detecção eficiente de mudanças** sem necessidade de comparar todas as colunas individualmente.  
+✅ **Melhora a performance** nas consultas de versionamento.  
+✅ **Garante integridade e rastreabilidade** ao histórico dos dados.  
+

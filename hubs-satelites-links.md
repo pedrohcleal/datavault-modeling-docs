@@ -70,3 +70,27 @@ Os **Links de Satélites** são uma combinação entre a estrutura de Links e Sa
 - **Links de Satélites**: Guardam os dados descritivos dos relacionamentos e suas mudanças ao longo do tempo.
 
 A modelagem de **Data Vault** oferece uma arquitetura robusta e flexível para ambientes de dados complexos e dinâmicos, ideal para Data Warehouses com grande volume de dados e necessidades de rastreabilidade.
+
+No **Data Vault**, as colunas `file_key` e `etag` não são necessárias porque:  
+
+### 🏛 **Camada Vault (Raw Vault & Business Vault)**
+- O **Data Vault** foca na **historização dos dados** e na rastreabilidade por meio de **chaves hash (Hash Keys) e Hash Differences (Hashdiffs)**.  
+- **`file_key`** e **`etag`** geralmente vêm de fontes externas (arquivos, APIs, sistemas legados). Elas são úteis para **auditoria** e **controle de ingestão** na **camada Raw** (Raw Layer), mas não impactam a modelagem Vault.  
+- Como o Vault já utiliza `hashkeys` para rastrear mudanças, essas colunas não agregam valor na modelagem.  
+
+---
+
+### 📂 **Camada Raw (Raw Layer)**
+- Aqui, **toda a informação da fonte** é mantida **exatamente como veio**, para auditoria e rastreabilidade.  
+- **`file_key`**: Pode representar o identificador único de um arquivo carregado.  
+- **`etag`**: Muitas vezes usado para controle de versão, garantindo que um mesmo arquivo não seja processado duas vezes.  
+- Elas ajudam a garantir **integridade na ingestão** e a permitir **auditorias**, mas não têm papel na modelagem de **hubs, links e satélites** no Vault.  
+
+---
+
+### 🎯 **Resumo**
+- **`file_key` e `etag` devem ser mantidos apenas na camada Raw (Landing Zone)**.  
+- **No Vault**, a rastreabilidade já é garantida pelos `hashkeys` e `hashdiffs` criados.  
+- **Caso seja necessário auditar um dado no Vault**, sempre é possível referenciar a camada Raw.  
+
+Se precisar de mais detalhes sobre como organizar esses dados no Data Vault, me avise! 🚀

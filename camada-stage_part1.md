@@ -115,4 +115,46 @@ print(f"BK: {bk_cliente} -> HK: {hk_cliente}")
 ✅ **BK**: Serve para rastrear a chave original e entender de onde o dado veio.  
 ✅ **HK**: Serve para **relacionamentos internos no Data Vault**, garantindo eficiência e padronização.
 
-Se precisar de mais detalhes sobre a implementação no seu contexto, me avise! 🚀
+## Hashdiff
+No **Data Vault**, uma **hashdiff** é um hash gerado a partir de todas as colunas descritivas de uma **satélite**. Ele é usado para detectar mudanças nos dados de forma eficiente e evitar armazenar registros duplicados. 
+
+### 📌 **Como funciona?**
+1. **Criação**: O **hashdiff** é gerado utilizando uma função de hash (como `MD5`, `SHA1` ou `SHA256`) sobre todas as colunas não-chave do satélite.
+2. **Comparação**: Quando um novo registro chega, seu hashdiff é comparado ao último hashdiff armazenado. Se forem diferentes, significa que houve uma alteração nos dados e um novo registro deve ser inserido.
+3. **Otimização**: O hashdiff evita a necessidade de comparar cada coluna individualmente, tornando a detecção de mudanças mais eficiente.
+
+### 📌 **Exemplo no `dbt`**
+No `dbt`, um **hashdiff** pode ser criado usando o `hash()` ou `md5()` do SQL, como:
+
+```sql
+SELECT 
+    hub_id,
+    md5(concat_ws('|', col1, col2, col3)) AS hashdiff,
+    col1,
+    col2,
+    col3,
+    load_date
+FROM raw_data
+```
+
+📌 **Benefícios do hashdiff no Data Vault:**
+- Melhora a eficiência das comparações.
+- Evita armazenar dados desnecessários.
+- Reduz a necessidade de verificações linha a linha.
+
+Se estiver usando `dbt` com `dbt_utils`, também pode usar `dbt_utils.generate_surrogate_key()`:
+
+```sql
+SELECT 
+    hub_id,
+    {{ dbt_utils.generate_surrogate_key(['col1', 'col2', 'col3']) }} AS hashdiff,
+    col1,
+    col2,
+    col3,
+    load_date
+FROM raw_data
+```
+
+Isso ajuda a garantir que os valores sejam tratados corretamente, mesmo se forem `NULL`.
+
+Quer um exemplo mais prático no seu contexto?
